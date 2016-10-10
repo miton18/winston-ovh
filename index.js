@@ -94,5 +94,5 @@
     "_some_info": 
     "foo", 
     "some_metric_num": 42.0, 
-    "_X-OVH-TOKEN":"1d56c7f4-4a7e-43c8-a4e1-8545560366fc"}\0' | openssl s_client -quiet -no_ign_eof  -connect 
+    "_X-OVH-TOKEN":"ddd"}\0' | openssl s_client -quiet -no_ign_eof  -connect 
   */
