@@ -1,0 +1,34 @@
+{
+  "name": "winston-ovh",
+  "version": "1.0.0",
+  "description": "A winston transport to log on OVH Laas product",
+  "main": "index",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/miton18/winston-ovh.git"
+  },
+  "keywords": [
+    "winston",
+    "log",
+    "ovh",
+    "api",
+    "laas"
+  ],
+  "author": "miton18 <rcd18@hotmail.fr>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/miton18/winston-ovh/issues"
+  },
+  "homepage": "https://github.com/miton18/winston-ovh#readme",
+  "engines": {
+    "node": ">= 6.7.0"
+  },
+  "dependencies": {
+    "graylog2": "^0.1.3",
+    "util": "^0.10.3",
+    "winston": "^2.2.0"
+  }
+}
