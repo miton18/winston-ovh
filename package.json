@@ -1,6 +1,6 @@
 {
   "name": "winston-ovh",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "license": "MIT",
   "description": "A winston transport to log on OVH Laas product",
   "main": "index.js",
@@ -12,7 +12,11 @@
     "url": "git+https://github.com/miton18/winston-ovh.git"
   },
   "keywords": [
-    "winston", "log", "ovh", "api", "laas"
+    "winston",
+    "log",
+    "ovh",
+    "api",
+    "laas"
   ],
   "author": "miton18 <contact@rcdinfo.fr>",
   "bugs": {
