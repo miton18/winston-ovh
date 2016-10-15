@@ -1,7 +1,7 @@
   let util = require('util'),
       winston = require('winston'),
       os = require("os"),
-      graylog = require("graylog2");
+      graylog = require(__dirname + "/vendor/graylog2");
  
   let ovh = winston.transports.ovh = function (opts) {
     // 
@@ -15,43 +15,32 @@
     // 
     // Configure your storage backing as you see fit 
     // 
-    this.host = opts.host || os.hostname();
+    this.host  = opts.host || os.hostname();
     this.token = opts.token;
-
-
-    this.winstonLevelsToSyslog = (level) => {
-      switch (level) {
-        case 'error':
-          return 3;
-        case 'warn':
-          return 4;
-        case 'info':
-          return 5;
-        case 'verbose':
-          return 6;
-        case 'debug':
-          return 7;
-        // plugin only go to debug level
-        //case 'silly':
-        //  return 7;
-        default:
-          return 5;
-      }
-    }
 
     this.GLog = new graylog.graylog({
       servers: [
-          { 'host': 'laas.runabove.com', port: 12202 }
+          { 'host': 'laas.runabove.com', port: 2202 }
       ],
       hostname: this.host, // the name of this host 
                               // (optional, default: os.hostname()) 
       facility: 'Node.js',     // the facility for these log messages 
                               // (optional, default: "Node.js") 
-      //bufferSize: 1350         // max UDP packet size, should never exceed the 
+      bufferSize: 1350         // max UDP packet size, should never exceed the 
                               // MTU of your system (optional, default: 1400) 
     }).on('error', function (error) {
-      console.log('Error while trying to write to graylog2:', error);
+      console.error('Error while trying to write to graylog server:', error);
     });
+
+    this.GLog.close(function(){
+    });
+
+    this.extend = (obj, ext) => {
+      for (let prop in ext) {
+              obj[prop] = ext[prop];
+      }
+      return obj;
+    }
   };
  
   // 
@@ -66,33 +55,31 @@
     // Store this message and metadata, maybe use some custom logic 
     // then callback indicating success. 
     // 
-
-    let log = {
-      version: '1.1',
-      host: this.host,
-      timestamp: Date.now(),
-      level: this.winstonLevelsToSyslog(level),
-      line: 100
-    }
-    log['_X-OVH-TOKEN'] = this.token;
-
+    let log = {};
+    log['X-OVH-TOKEN'] = this.token;
+    log = this.extend(log, meta);
     // We build short message with a part of the entire message
-    this.GLog.log(msg.slice(0, 25) + '...', msg, log);
-
+    switch (level) {
+        case 'error':
+          this.GLog.error(msg.slice(0, 25) + '...', msg, log);
+          break;
+        case 'warn':
+          this.GLog.warning(msg.slice(0, 25) + '...', msg, log);
+          break;
+        case 'info':
+          this.GLog.notice(msg.slice(0, 25) + '...', msg, log);
+          break;
+        case 'verbose':
+          this.GLog.info(msg.slice(0, 25) + '...', msg, log);
+          break;
+        case 'debug':
+          this.GLog.debug(msg.slice(0, 25) + '...', msg, log);
+          break;
+        // plugin only go to debug level
+        //case 'silly':
+        //  return 7;
+        default:
+          this.GLog.info(msg.slice(0, 25) + '...', msg, log);
+      }
     callback(null, true);
   };
-
-
-  /* GELF
-  {"version":"1.1", 
-    "host": "example.org", 
-    "short_message": "A short GELF message that helps you identify what is going on", 
-    "full_message": "Backtrace here more stuff", 
-    "timestamp": 1476029130, 
-    "level": 1, 
-    "_user_id": 9001, 
-    "_some_info": 
-    "foo", 
-    "some_metric_num": 42.0, 
-    "_X-OVH-TOKEN":"ddd"}\0' | openssl s_client -quiet -no_ign_eof  -connect 
-  */
