@@ -35,6 +35,9 @@ and a File is overkill.
 
 The ovh transport takes the following options. 'token' is required:
 
-* __token:__ OVH AI key.
+* __token:__ OVH AI key
+* __name:__ Transport instance identifier. Useful if you need to create multiple transports
+* __level:__ Level of messages that this transport should log, defaults to 'debug'
+* __host:__ Name of the instance, default is server name
 
 [0]: https://github.com/flatiron/winston
