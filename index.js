@@ -32,9 +32,6 @@
       console.error('Error while trying to write to graylog server:', error);
     });
 
-    this.GLog.close(function(){
-    });
-
     this.extend = (obj, ext) => {
       for (let prop in ext) {
               obj[prop] = ext[prop];
