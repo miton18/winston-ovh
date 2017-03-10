@@ -8,7 +8,6 @@
 ///  Winston-ovh
 ///******************
 
-
 declare module "winston-ovh" {
   export class ovhTransporter {
     constructor(config: ovhConfig);
