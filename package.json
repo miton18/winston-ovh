@@ -1,6 +1,6 @@
 {
   "name": "winston-ovh",
-  "version": "1.2.2",
+  "version": "2.0.0",
   "license": "MIT",
   "description": "A winston transport to log on OVH Laas product",
   "main": "index.js",
