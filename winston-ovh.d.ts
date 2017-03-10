@@ -5,12 +5,19 @@
 /// <reference path="../node/node.d.ts" />
 
 ///******************
-///  Winston v2.2.x
+///  Winston-ovh
 ///******************
 
 
-declare module "winston" {
-  export interface TransportStatic {
-    new (options?: TransportOptions): TransportInstance;
+declare module "winston-ovh" {
+  export class ovhTransporter {
+    constructor(config: ovhConfig);
+  }
+
+  export interface ovhConfig {
+    name?: string;
+    level?: string;
+    host?: string;
+    token: string;
   }
 }

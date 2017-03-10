@@ -1,6 +1,6 @@
 # winston-ovh
 
-An OVH Log As A Service transport for [winston][0].
+An OVH Log As A Service transport for NodeJS [Winston][0] logger.
 
 ## Motivation
 `tldr;?`: To break the [winston][0] codebase into small modules that work
@@ -14,20 +14,19 @@ and a File is overkill.
 ## Installation
 
 ``` bash
-  $ npm install winston
-  $ npm install winston-ovh
+  $ npm install --save winston winston-ovh
 ```
 
 ## Usage
 ``` js
-  let winston = require('winston');
-  require('winston-ovh');
+  const winston = require('winston');
+  const winstonOvh = require('winston-ovh');
 
   let logger = new (winston.Logger)({
     transports: [
       new (winston.transports.Console)(),
-      new (winston.transports.ovh)({ 
-        token: "" 
+      new winstonOvh.ovhTransporter({ 
+        token: "YOUR_LAAS_TOKEN" 
       })
     ]
   });
@@ -35,9 +34,17 @@ and a File is overkill.
 
 The ovh transport takes the following options. 'token' is required:
 
-* __token:__ OVH AI key
+* __token:__ OVH LAAS key
 * __name:__ Transport instance identifier. Useful if you need to create multiple transports
 * __level:__ Level of messages that this transport should log, defaults to 'debug'
 * __host:__ Name of the instance, default is server name
+
+
+Due to LAAS naming conventions, all meta data must be suffixing with his type.
+Ex:
+myBool => myBool_bool
+myNumber => myNumber_int
+
+Don't take care of it, winston-ovh will suffix your data
 
 [0]: https://github.com/flatiron/winston
