@@ -25,7 +25,7 @@ and a File is overkill.
   let logger = new (winston.Logger)({
     transports: [
       new (winston.transports.Console)(),
-      new winstonOvh.ovhTransporter({ 
+      new winstonOvh.Transporter({ 
         token: "YOUR_LAAS_TOKEN" 
       })
     ]
