@@ -4,13 +4,13 @@ const winston = require('winston'),
 let logger = new (winston.Logger)({
   transports: [
     new (winston.transports.Console)(),
-    new winstonOvh.Transporter({ 
-      token: "5e786fe7-8737-435e-a894-ad60367acb11" 
+    new winstonOvh.Transporter({
+      token: "YOUR_TOKEN"
     })
   ]
 });
 
-logger.level = 'silly';
+logger.level = 'silly'; // Highest level
 
 logger.error('test error', {some: true});
 logger.warn('test warn', {myField: 'test'});
