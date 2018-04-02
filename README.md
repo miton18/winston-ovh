@@ -3,33 +3,44 @@
 An OVH Log As A Service transport for NodeJS [Winston][0] logger.
 
 ## Motivation
+
 `tldr;?`: To break the [winston][0] codebase into small modules that work
 together.
 
 The [winston][0] codebase has been growing significantly with contributions and
 other logging transports. This is **awesome**. However, taking a ton of
 additional dependencies just to do something simple like logging to the Console
-and a File is overkill.  
+and a File is overkill.
 
 ## Installation
 
-``` bash
-  $ npm install --save winston winston-ovh
+```sh
+npm install --save winston-ovh
 ```
 
 ## Usage
-``` js
-  const winston = require('winston');
-  const winstonOvh = require('winston-ovh');
 
-  let logger = new (winston.Logger)({
-    transports: [
-      new (winston.transports.Console)(),
-      new winstonOvh.Transporter({ 
-        token: "YOUR_LAAS_TOKEN" 
-      })
-    ]
-  });
+```js
+import { Logger, transports, NpmConfigSetLevels } from 'winston'
+import ovhTransporter from 'winston-ovh'
+
+const logger = new Logger({
+  level: 'silly',
+  transports: [
+    new (transports.Console)(),
+    new ovhTransporter({
+      token: 'YOUR_TOKEN',
+      level: 'silly'
+    })
+  ]
+})
+
+logger.error('test error', { some: true })
+logger.warn('test warn', { myField: 'test' })
+logger.info('test info', { myNumber: 50 })
+logger.debug('test debug')
+logger.verbose('test verbose', { place: '48.4070554,-4.495554' })
+logger.silly('test silly')
 ```
 
 The ovh transport takes the following options. 'token' is required:
@@ -38,7 +49,6 @@ The ovh transport takes the following options. 'token' is required:
 * __name:__ Transport instance identifier. Useful if you need to create multiple transports
 * __level:__ Level of messages that this transport should log, defaults to 'debug'
 * __host:__ Name of the instance, default is server name
-
 
 Due to LAAS naming conventions, all meta data must be suffixing with his type.
 Ex:
