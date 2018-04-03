@@ -47,7 +47,7 @@ var Transporter = /** @class */ (function (_super) {
                 host: _this.host,
                 "X-OVH-TOKEN": _this.token,
             },
-            adapterName: 'tcp',
+            adapterName: opts.tls ? 'tcp-tls' : 'tcp',
             adapterOptions: {
                 host: opts.ldpHost || 'discover.logs.ovh.com',
                 port: opts.ldpPort || 2202,

@@ -6,6 +6,7 @@ export interface ovhTransporterOptions {
     host?: string;
     ldpHost?: string;
     ldpPort?: number;
+    tls?: boolean;
 }
 export default class Transporter extends Transport {
     name: string;

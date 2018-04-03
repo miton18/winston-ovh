@@ -8,7 +8,8 @@ export interface ovhTransporterOptions {
   level?: string
   host?: string
   ldpHost?: string
-  ldpPort?: number
+  ldpPort?: number,
+  tls?: boolean
 }
 
 export default class Transporter extends Transport {
@@ -47,7 +48,7 @@ export default class Transporter extends Transport {
         host: this.host,
         "X-OVH-TOKEN": this.token,
       },
-      adapterName: 'tcp',
+      adapterName: opts.tls? 'tcp-tls' : 'tcp',
       adapterOptions: {
         host: opts.ldpHost || 'discover.logs.ovh.com',
         port: opts.ldpPort || 2202,
