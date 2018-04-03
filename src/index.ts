@@ -2,11 +2,13 @@ import { Transport } from 'winston'
 import { hostname } from 'os'
 import Gelf from 'gelf-pro'
 
-interface ovhTransporterOptions {
+export interface ovhTransporterOptions {
   token: string
   name?: string
   level?: string
   host?: string
+  ldpHost?: string
+  ldpPort?: number
 }
 
 export default class Transporter extends Transport {
@@ -47,8 +49,8 @@ export default class Transporter extends Transport {
       },
       adapterName: 'tcp',
       adapterOptions: {
-        host: 'discover.logs.ovh.com',
-        port: 2202,
+        host: opts.ldpHost || 'discover.logs.ovh.com',
+        port: opts.ldpPort || 2202,
         family: 4, // IP stack,
         timeout: 1000  // 1s
       },

@@ -49,8 +49,8 @@ var Transporter = /** @class */ (function (_super) {
             },
             adapterName: 'tcp',
             adapterOptions: {
-                host: 'discover.logs.ovh.com',
-                port: 2202,
+                host: opts.ldpHost || 'discover.logs.ovh.com',
+                port: opts.ldpPort || 2202,
                 family: 4,
                 timeout: 1000 // 1s
             },

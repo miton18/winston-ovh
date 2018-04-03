@@ -1,6 +1,6 @@
 {
   "name": "winston-ovh",
-  "version": "3.0.2",
+  "version": "3.0.3",
   "license": "MIT",
   "description": "A winston transport to log on OVH Laas product",
   "main": "build/index.js",
@@ -8,6 +8,7 @@
     "dev": "tsc --watch",
     "test": "node test"
   },
+  "types": "build/index.d.ts",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/miton18/winston-ovh.git"
