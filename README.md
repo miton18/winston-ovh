@@ -1,6 +1,6 @@
 # winston-ovh
 
-An OVH Log As A Service transport for NodeJS [Winston][0] logger.
+An OVH Logs data platform transport for NodeJS [Winston][0] logger.
 
 ## Motivation
 
@@ -21,14 +21,15 @@ npm install --save winston-ovh
 ## Usage
 
 ```js
-import { Logger, transports, NpmConfigSetLevels } from 'winston'
+import { createLogger, transports } from 'winston'
 import ovhTransporter from 'winston-ovh'
 
-const logger = new Logger({
+const logger = createLogger({
   level: 'silly',
   transports: [
-    new (transports.Console)(),
+    new transports.Console(),
     new ovhTransporter({
+      host: 'graxxx.logs.ovh.com',
       token: 'YOUR_TOKEN',
       level: 'silly'
     })
@@ -45,10 +46,9 @@ logger.silly('test silly')
 
 The ovh transport takes the following options. 'token' is required:
 
-* __token:__ OVH LAAS key
-* __name:__ Transport instance identifier. Useful if you need to create multiple transports
+* __token:__ Logs data platform key
 * __level:__ Level of messages that this transport should log, defaults to 'debug'
-* __host:__ Name of the instance, default is server name
+* __host:__ Logs data platform endpoint
 
 Due to LAAS naming conventions, all meta data must be suffixing with his type.
 Ex:

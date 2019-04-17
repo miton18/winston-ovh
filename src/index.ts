@@ -1,42 +1,38 @@
-import { Transport } from 'winston'
-import { hostname } from 'os'
+import Transport from 'winston-transport'
 import Gelf from 'gelf-pro'
+
+const levels: {[index: string] : number} = {
+  error: 0,
+  warn: 1,
+  info: 2,
+  verbose: 3,
+  debug: 4,
+  silly: 5
+}
 
 export interface ovhTransporterOptions {
   token: string
   name?: string
   level?: string
   host?: string
-  ldpHost?: string
-  ldpPort?: number,
+  port?: number
   tls?: boolean
 }
 
-export default class Transporter extends Transport {
-
-  name: string = 'ovh'
-  level: string = 'debug'
-  private host: string = hostname()
+export default class ovhTransporter extends Transport {
+  level: string = 'info'
   private token: string
   private gelf: any
 
   constructor(opts: ovhTransporterOptions) {
-    super()
-
-    /**
-     * Name of this logger
-     */
-    if (opts.name) this.name = opts.name
+    super(opts)
 
     /**
      * Set the level from your options
      */
-    if (opts.level) this.level = opts.level
-
-    /**
-     * log sender identifier
-     */
-    if (opts.host) this.host = opts.host
+    if (opts.level) {
+      this.level = opts.level
+    }
 
     /**
      * Your OVH Logs Data Platform token
@@ -45,25 +41,20 @@ export default class Transporter extends Transport {
 
     this.gelf = Gelf.setConfig({
       fields: {
-        host: this.host,
         "X-OVH-TOKEN": this.token,
       },
-      adapterName: opts.tls? 'tcp-tls' : 'tcp',
+      adapterName: opts.tls === false ? 'tcp' : 'tcp-tls',
       adapterOptions: {
-        host: opts.ldpHost || 'discover.logs.ovh.com',
-        port: opts.ldpPort || 2202,
+        host: opts.host || 'discover.logs.ovh.com',
+        port: opts.port || 12202,
         family: 4, // IP stack,
         timeout: 1000  // 1s
-      },
-      levels: {
-        error: 1,
-        warn: 2,
-        info: 3,
-        verbose: 5,
-        debug: 4,
-        silly: 6
       }
     })
+  }
+
+  get name() {
+    return 'ovh'
   }
 
   /**
@@ -73,34 +64,19 @@ export default class Transporter extends Transport {
    * @param {Object} meta
    * @param {Function} callback
    */
-  log(level: string, msg: string, meta: any, cb: Function) {
+  log(info: any, cb: () => void) {
+    const { message } = info
+    let { level, ...meta } = info
+    meta = ovhTransporter.suffixing(meta) // Laas naming logic
 
-    //meta = Transporter.suffixing(meta) // Laas naming logic
-    const errorHandler = (err: any) => {
-      if (err)
-        return cb(new Error(`Failed to send log ${ err }`), level, msg, meta)
-      cb(null, true)
-    }
-
-    // Unsupported method types
-    switch (level) {
-      case 'verbose':
-        level = 'notice'
-        break;
-      case 'silly':
-        level = 'debug'
-        break
-      default:
-        break;
-    }
-
-    if (this.gelf[level] === undefined)
-      return cb(new Error(`Unknow log level ${ level }`), level, msg, meta)
-    this.gelf[level](msg, meta, errorHandler)
+    const gelfLevel = levels[level] || 0
+    this.gelf.message(message, gelfLevel, meta, cb)
   }
 
+  close() {}
+
   /**
-   * [DISABLED] attempt to preserve meta values type
+   * Attempt to preserve meta values type
    * Suffix all properties of object, according to the log data platform
    * @param {Object} o Object to suffix
    * @return {Object} Suffixed object
@@ -109,35 +85,43 @@ export default class Transporter extends Transport {
     if (typeof o !== 'object') return null
 
     const n: any = {}
-    for (let prop in o) {
-      if (!o[prop]) continue
+    Object.keys(o).forEach(prop => {
+      const v = o[prop]
 
-      switch (typeof o[prop]) {
+      switch (typeof v) {
         case 'number':
-          n[prop + '_double'] = o[prop]
+          if (v % 1 === 0) {
+            n[`_${prop}_long`] = v
+            break
+          }
+          n[`_${prop}_num`] = v
           break
 
         case 'boolean':
-          n[prop + '_bool'] = o[prop]
+          n[`_${prop}_bool`] = v
           break
 
         case 'string':
-          let pos = o[prop].split(',')
           // Can be Geo position
-          if (pos.length === 2)
-            n[prop + '_geolocation'] = o[prop]
-          else
-            n[prop] = o[prop]
+          if (v.split(',').length === 2) {
+            n[`_${prop}_geolocation`] = v
+            break
+          }
+
+          n[prop] = v
           break
 
         // it's an object
         default:
-          if (o[prop] instanceof Date)
-            n[prop + '_date'] = o[prop].toISOString()
-          else
-            n[prop] = JSON.stringify(o[prop])
+          if (v instanceof Date) {
+            n[`_${prop}_date`] = v.toISOString()
+            break
+          }
+
+          n[prop] = JSON.stringify(v)
       }
-    }
+    })
+
     return n
   }
 }

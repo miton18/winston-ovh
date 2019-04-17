@@ -29,10 +29,11 @@
     "node": ">=9.5.0"
   },
   "dependencies": {
-    "gelf-pro": "^1.2.0",
-    "winston": "^2.4.1"
+    "gelf-pro": "^1.3.0",
+    "winston-transport": "^4.3.0"
   },
   "devDependencies": {
-    "@types/winston": "^2.3.8"
+    "@types/winston": "^2.3.8",
+    "winston": "^3.2.1"
   }
 }

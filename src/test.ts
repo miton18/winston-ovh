@@ -1,12 +1,13 @@
-import { Logger, transports, NpmConfigSetLevels } from 'winston'
+import { createLogger, transports } from 'winston'
 import ovhTransporter from'./index'
 
-const logger = new Logger({
+const logger = createLogger({
   level: 'silly',
   transports: [
-    new (transports.Console)(),
+    new transports.Console(),
     new ovhTransporter({
-      token: 'YOUR_TOKEN',
+      host: 'graxxx.logs.ovh.com',
+      token: 'TOKEN',
       level: 'silly'
     })
   ]
@@ -14,7 +15,7 @@ const logger = new Logger({
 
 logger.error('test error', {some: true})
 logger.warn('test warn', {myField: 'test'})
-logger.info('test info', {myNumber: 50})
+logger.info('test info', {myNumber: 50, myFloat: 30.001})
 logger.debug('test debug')
 logger.verbose('test verbose', {place: '48.4070554,-4.495554'})
 logger.silly('test silly')
