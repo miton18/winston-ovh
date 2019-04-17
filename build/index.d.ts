@@ -8,11 +8,11 @@ export interface ovhTransporterOptions {
     tls?: boolean;
 }
 export default class ovhTransporter extends Transport {
-    level: string;
     private token;
     private gelf;
     constructor(opts: ovhTransporterOptions);
     readonly name: string;
+    static getLevel(l: string): number;
     /**
      * Log a message into Laas
      * @param {string} level
@@ -20,7 +20,7 @@ export default class ovhTransporter extends Transport {
      * @param {Object} meta
      * @param {Function} callback
      */
-    log(info: any, cb: () => void): void;
+    log(info: any, cb: (err?: Error) => void): any;
     close(): void;
     /**
      * Attempt to preserve meta values type

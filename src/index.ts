@@ -1,15 +1,6 @@
 import Transport from 'winston-transport'
 import Gelf from 'gelf-pro'
 
-const levels: {[index: string] : number} = {
-  error: 0,
-  warn: 1,
-  info: 2,
-  verbose: 3,
-  debug: 4,
-  silly: 5
-}
-
 export interface ovhTransporterOptions {
   token: string
   name?: string
@@ -20,7 +11,6 @@ export interface ovhTransporterOptions {
 }
 
 export default class ovhTransporter extends Transport {
-  level: string = 'info'
   private token: string
   private gelf: any
 
@@ -28,16 +18,11 @@ export default class ovhTransporter extends Transport {
     super(opts)
 
     /**
-     * Set the level from your options
-     */
-    if (opts.level) {
-      this.level = opts.level
-    }
-
-    /**
      * Your OVH Logs Data Platform token
      */
     this.token = opts.token
+
+    this.level = opts.level || 'debug'
 
     this.gelf = Gelf.setConfig({
       fields: {
@@ -57,6 +42,25 @@ export default class ovhTransporter extends Transport {
     return 'ovh'
   }
 
+  static getLevel(l: string): number {
+    if (~l.indexOf('error')) {
+        return 3
+    }
+    if (~l.indexOf('warn')) {
+        return 4
+    }
+    if (~l.indexOf('info')) {
+        return 5
+    }
+    if (~l.indexOf('verbose')) {
+        return 6
+    }
+    if (~l.indexOf('debug') || ~l.indexOf('silly')) {
+      return 7
+    }
+    return 3
+  }
+
   /**
    * Log a message into Laas
    * @param {string} level
@@ -64,14 +68,20 @@ export default class ovhTransporter extends Transport {
    * @param {Object} meta
    * @param {Function} callback
    */
-  log(info: any, cb: () => void) {
+  log(info: any, cb: (err?: Error) => void): any {
+    setImmediate(() => this.emit('logged', info))
+
     const { message } = info
     let { level, ...meta } = info
     meta = ovhTransporter.suffixing(meta) // Laas naming logic
 
-    const gelfLevel = levels[level] || 0
-    this.gelf.message(message, gelfLevel, meta, cb)
+    this.gelf.message(message, ovhTransporter.getLevel(level), meta, (err: any) => {
+      cb(err as Error)
+    })
   }
+
+  // stream version
+  // logv() {}
 
   close() {}
 
@@ -82,10 +92,20 @@ export default class ovhTransporter extends Transport {
    * @return {Object} Suffixed object
    */
   static suffixing(o: any) {
-    if (typeof o !== 'object') return null
+    if (typeof o !== 'object') return {}
+
+    if (o.message && o.stack) {
+
+      return {
+        error: o.message + ': ' + o.name || o.stack
+      }
+    }
 
     const n: any = {}
     Object.keys(o).forEach(prop => {
+      if (prop === 'message') return
+      if (prop === 'level') return
+
       const v = o[prop]
 
       switch (typeof v) {
@@ -118,7 +138,16 @@ export default class ovhTransporter extends Transport {
             break
           }
 
-          n[prop] = JSON.stringify(v)
+          if (v instanceof Error) {
+            n[prop] = v.name + ': ' + v.message
+            break
+          }
+
+          try {
+            n[prop] = JSON.stringify(v)
+          } catch (err) {
+            n[prop] = null
+          }
       }
     })
 

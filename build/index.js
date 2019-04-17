@@ -14,28 +14,14 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const winston_transport_1 = __importDefault(require("winston-transport"));
 const gelf_pro_1 = __importDefault(require("gelf-pro"));
-const levels = {
-    error: 0,
-    warn: 1,
-    info: 2,
-    verbose: 3,
-    debug: 4,
-    silly: 5
-};
 class ovhTransporter extends winston_transport_1.default {
     constructor(opts) {
         super(opts);
-        this.level = 'info';
-        /**
-         * Set the level from your options
-         */
-        if (opts.level) {
-            this.level = opts.level;
-        }
         /**
          * Your OVH Logs Data Platform token
          */
         this.token = opts.token;
+        this.level = opts.level || 'debug';
         this.gelf = gelf_pro_1.default.setConfig({
             fields: {
                 "X-OVH-TOKEN": this.token,
@@ -52,6 +38,24 @@ class ovhTransporter extends winston_transport_1.default {
     get name() {
         return 'ovh';
     }
+    static getLevel(l) {
+        if (~l.indexOf('error')) {
+            return 3;
+        }
+        if (~l.indexOf('warn')) {
+            return 4;
+        }
+        if (~l.indexOf('info')) {
+            return 5;
+        }
+        if (~l.indexOf('verbose')) {
+            return 6;
+        }
+        if (~l.indexOf('debug') || ~l.indexOf('silly')) {
+            return 7;
+        }
+        return 3;
+    }
     /**
      * Log a message into Laas
      * @param {string} level
@@ -60,12 +64,16 @@ class ovhTransporter extends winston_transport_1.default {
      * @param {Function} callback
      */
     log(info, cb) {
+        setImmediate(() => this.emit('logged', info));
         const { message } = info;
         let { level } = info, meta = __rest(info, ["level"]);
         meta = ovhTransporter.suffixing(meta); // Laas naming logic
-        const gelfLevel = levels[level] || 0;
-        this.gelf.message(message, gelfLevel, meta, cb);
+        this.gelf.message(message, ovhTransporter.getLevel(level), meta, (err) => {
+            cb(err);
+        });
     }
+    // stream version
+    // logv() {}
     close() { }
     /**
      * Attempt to preserve meta values type
@@ -75,9 +83,18 @@ class ovhTransporter extends winston_transport_1.default {
      */
     static suffixing(o) {
         if (typeof o !== 'object')
-            return null;
+            return {};
+        if (o.message && o.stack) {
+            return {
+                error: o.message + ': ' + o.name || o.stack
+            };
+        }
         const n = {};
         Object.keys(o).forEach(prop => {
+            if (prop === 'message')
+                return;
+            if (prop === 'level')
+                return;
             const v = o[prop];
             switch (typeof v) {
                 case 'number':
@@ -104,7 +121,16 @@ class ovhTransporter extends winston_transport_1.default {
                         n[`_${prop}_date`] = v.toISOString();
                         break;
                     }
-                    n[prop] = JSON.stringify(v);
+                    if (v instanceof Error) {
+                        n[prop] = v.name + ': ' + v.message;
+                        break;
+                    }
+                    try {
+                        n[prop] = JSON.stringify(v);
+                    }
+                    catch (err) {
+                        n[prop] = null;
+                    }
             }
         });
         return n;
